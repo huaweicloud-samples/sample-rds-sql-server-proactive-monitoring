@@ -1,0 +1,60 @@
+# ============================================================================
+# terraform.tfvars.example
+# 复制为 terraform.tfvars 后填写真实值；请勿把凭据写入版本库。
+# ============================================================================
+
+region          = "cn-north-4"
+name_prefix     = "rds-sqlserver-monitor"
+az_primary      = "cn-north-4a"
+az_standby      = "cn-north-4b"
+enterprise_project_id = "0"
+
+vpc_cidr          = "10.20.0.0/16"
+subnet_cidr       = "10.20.1.0/24"
+subnet_gateway_ip = "10.20.1.1"
+
+# ---- RDS for SQL Server（规格 / 版本 / 存储显式指定）----
+sqlserver_version = "2022_web"     # apply 前用 huaweicloud_rds_engine_versions 在目标 region 核实
+rds_flavor        = "sql.x2.large.4" # apply 前用 huaweicloud_rds_flavors 在目标 region 实查可售
+rds_volume_type   = "ESSD"           # apply 前用 huaweicloud_rds_storage_types 核实
+rds_volume_size   = 40
+rds_ha_mode       = "single"         # 改为 ha 则主备双可用区部署
+db_port           = 1433
+db_user_name      = "db_admin"
+db_password       = "<DB_PASSWORD>"  # 占位符，替换为强密码
+app_db_name       = "monitordb"
+backup_keep_days  = 7
+
+# ---- 参数组 ----
+param_group_name = "rds-sqlserver-monitor-params"
+param_group_values = {
+  "error_verbosity" = "0"
+}
+
+# ---- GeminiDB 表格服务（错误去重状态）----
+geminidb_mode      = "Cluster"
+geminidb_version   = "3.0"
+geminidb_spec_code = "geminidb.ddm.xlarge.2.arm" # apply 前在目标 region 实查可售
+geminidb_node_num  = 3
+geminidb_node_size = 100
+geminidb_password  = "<GEMINIDB_PASSWORD>"       # 占位符
+geminidb_error_table = "SqlServerErrorState"
+
+# ---- LTS 日志留存 ----
+lts_group_ttl_days  = 30
+lts_stream_ttl_days = 30
+
+# ---- FunctionGraph ----
+fgs_runtime     = "Python3.9"
+fgs_handler     = "index.handler"
+fgs_memory_size = 256
+fgs_timeout     = 300
+
+# ---- 通知通道 ----
+notify_topic_name             = "sqlserver-error-notify"
+notify_webhook_url            = "<WEBHOOK_URL>"          # 占位符
+notification_cooldown_minutes = 15
+state_ttl_hours               = 10
+
+# ---- IAM 委托 ----
+agency_delegated_domain = "<HW_ACCOUNT_DOMAIN>"
